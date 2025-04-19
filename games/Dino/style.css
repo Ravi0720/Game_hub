@@ -1,0 +1,62 @@
+body {
+    font-family: sans-serif;
+    text-align: center;
+    background: #f4f4f4;
+}
+
+#game {
+    width: 600px;
+    height: 200px;
+    border: 2px solid #333;
+    background: #fff;
+    margin: 20px auto;
+    position: relative;
+    overflow: hidden;
+}
+
+#dino {
+    width: 40px;
+    height: 40px;
+    background: limegreen;
+    position: absolute;
+    bottom: 0;
+    left: 50px;
+}
+
+#obstacle {
+    width: 30px;
+    height: 50px;
+    background: tomato;
+    position: absolute;
+    bottom: 0;
+    right: -30px;
+    animation: moveObstacle 2s linear infinite;
+}
+
+@keyframes moveObstacle {
+    from {
+        right: -30px;
+    }
+
+    to {
+        right: 630px;
+    }
+}
+
+.jump {
+    animation: jump 0.5s ease-out;
+}
+
+@keyframes jump {
+    0% {
+        bottom: 0;
+    }
+
+    50% {
+        bottom: 100px;
+    }
+
+    100% {
+        bottom: 0;
+    }
+}
