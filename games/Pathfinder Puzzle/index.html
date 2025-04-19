@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pathfinder Puzzle</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #game-container {
+      text-align: center;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 2px;
+      background-color: #333;
+      padding: 2px;
+      margin: 10px auto;
+    }
+    .tile {
+      width: 60px;
+      height: 60px;
+      background-color: #fff;
+      cursor: pointer;
+    }
+    .start { background-color: #0f0; }
+    .goal { background-color: #f00; }
+    .wall { background-color: #666; cursor: default; }
+    .path { background-color: #00f; }
+    .key { background-color: #ff0; }
+    .gate { background-color: #800080; }
+    #info {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+    #game-over {
+      display: none;
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="info">Level: 1 | Score: 0 | Moves Left: <span id="moves">10</span></div>
+    <div id="grid"></div>
+    <div id="game-over">
+      <h2>Game Over</h2>
+      <p>Final Score: <span id="final-score"></span></p>
+      <button onclick="startGame()">Play Again</button>
+    </div>
+  </div>
+  <script>
+    const grid = document.getElementById('grid');
+    const info = document.getElementById('info');
+    const movesDisplay = document.getElementById('moves');
+    const gameOver = document.getElementById('game-over');
+    const finalScore = document.getElementById('final-score');
+    const gridSize = 5;
+
+    const levels = [
+      {
+        walls: [[1,1], [1,3], [3,1], [3,3]],
+        keys: [],
+        gates: [],
+        start: [0,0],
+        goal: [4,4],
+        moves: 10
+      },
+      {
+        walls: [[1,2], [2,1], [2,3], [3,2]],
+        keys: [[1,4]],
+        gates: [[3,4]],
+        start: [0,0],
+        goal: [4,4],
+        moves: 12
+      },
+      {
+        walls: [[0,2], [1,1], [2,2], [3,3], [4,2]],
+        keys: [[2,4]],
+        gates: [[4,3]],
+        start: [0,0],
+        goal: [4,4],
+        moves: 15
+      }
+    ];
+
+    let currentLevel = 0;
+    let score = 0;
+    let movesLeft = 10;
+    let playerPos = [0,0];
+    let path = [[0,0]];
+    let hasKey = false;
+    let gameRunning = true;
+    let tiles = [];
+
+    function initializeGrid() {
+      grid.innerHTML = '';
+      tiles = [];
+      const level = levels[currentLevel];
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          const tile = document.createElement('div');
+          tile.classList.add('tile');
+          tile.dataset.row = i;
+          tile.dataset.col = j;
+          tile.addEventListener('click', () => handleTileClick(i, j));
+          if (i === level.start[0] && j === level.start[1]) tile.classList.add('start');
+          else if (i === level.goal[0] && j === level.goal[1]) tile.classList.add('goal');
+          else if (level.walls.some(([r,c]) => r === i && c === j)) tile.classList.add('wall');
+          else if (level.keys.some(([r,c]) => r === i && c === j)) tile.classList.add('key');
+          else if (level.gates.some(([r,c]) => r === i && c === j)) tile.classList.add('gate');
+          grid.appendChild(tile);
+          tiles.push(tile);
+        }
+      }
+      playerPos = [...level.start];
+      path = [[...level.start]];
+      hasKey = false;
+      movesLeft = level.moves;
+      updateDisplay();
+    }
+
+    function isAdjacent([r1, c1], [r2, c2]) {
+      return (Math.abs(r1 - r2) === 1 && c1 === c2) || (Math.abs(c1 - c2) === 1 && r1 === r2);
+    }
+
+    function handleTileClick(row, col) {
+      if (!gameRunning) return;
+      const level = levels[currentLevel];
+      const newPos = [row, col];
+
+      if (!isAdjacent(playerPos, newPos)) return;
+      if (level.walls.some(([r,c]) => r === row && c === col)) return;
+      if (level.gates.some(([r,c]) => r === row && c === col) && !hasKey) return;
+
+      movesLeft--;
+      playerPos = newPos;
+      path.push(newPos);
+
+      if (level.keys.some(([r,c]) => r === row && c === col)) {
+        hasKey = true;
+        tiles[row * gridSize + col].classList.remove('key');
+      }
+
+      tiles.forEach(t => t.classList.remove('path'));
+      path.forEach(([r,c]) => {
+        if (!(r === level.start[0] && c === level.start[1]) && !(r === level.goal[0] && c === level.goal[1])) {
+          tiles[r * gridSize + c].classList.add('path');
+        }
+      });
+
+      updateDisplay();
+
+      if (row === level.goal[0] && col === level.goal[1]) {
+        score += 100 + movesLeft * 10;
+        currentLevel++;
+        if (currentLevel >= levels.length) {
+          gameRunning = false;
+          finalScore.textContent = score;
+          gameOver.style.display = 'block';
+        } else {
+          initializeGrid();
+        }
+      } else if (movesLeft <= 0) {
+        gameRunning = false;
+        finalScore.textContent = score;
+        gameOver.style.display = 'block';
+      }
+    }
+
+    function updateDisplay() {
+      info.textContent = `Level: ${currentLevel + 1} | Score: ${score} | Moves Left: ${movesLeft}`;
+      movesDisplay.textContent = movesLeft;
+    }
+
+    function startGame() {
+      gameRunning = true;
+      score = 0;
+      currentLevel = 0;
+      initializeGrid();
+      gameOver.style.display = 'none';
+    }
+
+    startGame();
+  </script>
+</body>
+</html>

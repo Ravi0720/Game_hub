@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Matrix</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #game-container {
+      text-align: center;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      gap: 5px;
+      background-color: #333;
+      padding: 5px;
+      margin: 10px auto;
+    }
+    .tile {
+      width: 80px;
+      height: 80px;
+      background-color: #ccc;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .tile.active {
+      background-color: #0f0;
+    }
+    .tile.correct {
+      background-color: #00f;
+    }
+    .tile.wrong {
+      background-color: #f00;
+    }
+    #info {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+    #game-over {
+      display: none;
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="info">Watch the sequence!</div>
+    <div id="grid"></div>
+    <div id="game-over">
+      <h2>Game Over</h2>
+      <p>Your Score: <span id="score"></span></p>
+      <button onclick="startGame()">Play Again</button>
+    </div>
+  </div>
+  <script>
+    const grid = document.getElementById('grid');
+    const info = document.getElementById('info');
+    const gameOver = document.getElementById('game-over');
+    const scoreDisplay = document.getElementById('score');
+    const gridSize = 4;
+    let sequence = [];
+    let playerSequence = [];
+    let level = 3;
+    let score = 0;
+    let gameState = 'showing';
+    let tiles = [];
+
+    function initializeGrid() {
+      grid.innerHTML = '';
+      tiles = [];
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          const tile = document.createElement('div');
+          tile.classList.add('tile');
+          tile.dataset.row = i;
+          tile.dataset.col = j;
+          tile.addEventListener('click', () => handleTileClick(i, j));
+          grid.appendChild(tile);
+          tiles.push(tile);
+        }
+      }
+    }
+
+    function generateSequence() {
+      sequence = [];
+      for (let i = 0; i < level; i++) {
+        const index = Math.floor(Math.random() * gridSize * gridSize);
+        sequence.push(index);
+      }
+    }
+
+    async function showSequence() {
+      gameState = 'showing';
+      info.textContent = 'Watch the sequence!';
+      for (let index of sequence) {
+        const tile = tiles[index];
+        tile.classList.add('active');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        tile.classList.remove('active');
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      gameState = 'playing';
+      info.textContent = 'Repeat the sequence!';
+      playerSequence = [];
+    }
+
+    function handleTileClick(row, col) {
+      if (gameState !== 'playing') return;
+      const index = row * gridSize + col;
+      const tile = tiles[index];
+      playerSequence.push(index);
+
+      if (playerSequence[playerSequence.length - 1] === sequence[playerSequence.length - 1]) {
+        tile.classList.add('correct');
+        setTimeout(() => tile.classList.remove('correct'), 300);
+        if (playerSequence.length === sequence.length) {
+          score += level * 10;
+          level++;
+          info.textContent = `Nice! Score: ${score}`;
+          setTimeout(nextLevel, 1000);
+        }
+      } else {
+        tile.classList.add('wrong');
+        gameState = 'over';
+        scoreDisplay.textContent = score;
+        gameOver.style.display = 'block';
+      }
+    }
+
+    function nextLevel() {
+      generateSequence();
+      showSequence();
+    }
+
+    function startGame() {
+      gameOver.style.display = 'none';
+      score = 0;
+      level = 3;
+      gameState = 'showing';
+      info.textContent = 'Watch the sequence!';
+      initializeGrid();
+      generateSequence();
+      showSequence();
+    }
+
+    startGame();
+  </script>
+</body>
+</html>

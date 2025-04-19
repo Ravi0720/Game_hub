@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Dash</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #game-container {
+      text-align: center;
+    }
+    #game-canvas {
+      border: 2px solid #333;
+      background-color: #fff;
+    }
+    #score {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    #input-field {
+      font-size: 18px;
+      padding: 10px;
+      width: 300px;
+      margin-top: 10px;
+      border: 2px solid #333;
+      border-radius: 5px;
+    }
+    #game-over {
+      display: none;
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="score">Score: 0</div>
+    <canvas id="game-canvas" width="600" height="400"></canvas>
+    <input type="text" id="input-field" autocomplete="off" placeholder="Type the word here">
+    <div id="game-over">
+      <h2>Game Over</h2>
+      <p>Final Score: <span id="final-score"></span></p>
+      <button onclick="startGame()">Play Again</button>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const scoreElement = document.getElementById('score');
+    const inputField = document.getElementById('input-field');
+    const gameOverElement = document.getElementById('game-over');
+    const finalScoreElement = document.getElementById('final-score');
+
+    const words = [
+      'cat', 'dog', 'sun', 'moon', 'star', 'tree', 'fish', 'bird', 'cloud', 'rain',
+      'snow', 'wind', 'fire', 'lake', 'hill', 'book', 'pen', 'car', 'bike', 'house'
+    ];
+    let fallingWords = [];
+    let score = 0;
+    let gameRunning = true;
+    let difficulty = 1;
+
+    function spawnWord() {
+      const word = words[Math.floor(Math.random() * words.length)];
+      const x = Math.random() * (canvas.width - 100) + 50;
+      const speed = 1 + difficulty * 0.2;
+      fallingWords.push({ word, x, y: 0, speed });
+    }
+
+    function update() {
+      if (!gameRunning) {
+        finalScoreElement.textContent = score;
+        gameOverElement.style.display = 'block';
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      fallingWords = fallingWords.filter(word => word.y < canvas.height);
+      for (let word of fallingWords) {
+        word.y += word.speed;
+        ctx.font = '20px Arial';
+        ctx.fillStyle = '#333';
+        ctx.fillText(word.word, word.x, word.y);
+
+        if (word.y >= canvas.height) {
+          gameRunning = false;
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    function checkInput() {
+      const typed = inputField.value.trim().toLowerCase();
+      for (let i = 0; i < fallingWords.length; i++) {
+        if (typed === fallingWords[i].word) {
+          fallingWords.splice(i, 1);
+          score += 10;
+          scoreElement.textContent = `Score: ${score}`;
+          inputField.value = '';
+          difficulty += 0.1; // Slightly increase difficulty
+          break;
+        }
+      }
+    }
+
+    function startGame() {
+      gameRunning = true;
+      score = 0;
+      difficulty = 1;
+      fallingWords = [];
+      scoreElement.textContent = `Score: ${score}`;
+      gameOverElement.style.display = 'none';
+      inputField.value = '';
+      inputField.focus();
+      spawnWord();
+      update();
+    }
+
+    inputField.addEventListener('input', checkInput);
+    setInterval(() => {
+      if (gameRunning) spawnWord();
+    }, 2000);
+
+    startGame();
+  </script>
+</body>
+</html>
