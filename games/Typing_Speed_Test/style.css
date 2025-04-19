@@ -1,0 +1,36 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 50px;
+  }
+  
+  h1 {
+    color: #333;
+  }
+  
+  .test-container {
+    margin-top: 20px;
+  }
+  
+  #test-text {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  textarea {
+    width: 80%;
+    height: 100px;
+    font-size: 18px;
+    padding: 10px;
+    margin-top: 10px;
+  }
+  
+  .result {
+    margin-top: 20px;
+    font-size: 20px;
+  }
+  
+  #time, #wpm {
+    font-weight: bold;
+  }
+  
