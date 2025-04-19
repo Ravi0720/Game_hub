@@ -62,7 +62,7 @@ function update() {
         currentBubble.x += currentBubble.dx;
         currentBubble.y += currentBubble.dy;
 
-        // Bounce from wall
+        // Bounce from walls
         if (currentBubble.x <= currentBubble.radius || currentBubble.x >= canvas.width - currentBubble.radius) {
             currentBubble.dx = -currentBubble.dx;
         }
@@ -75,7 +75,7 @@ function update() {
             const distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < currentBubble.radius * 2) {
                 if (currentBubble.color === b.color) {
-                    bubbles.splice(i, 1);
+                    bubbles.splice(i, 1); // Remove matched bubbles
                 }
                 bubbles.push(currentBubble);
                 currentBubble = createBubble(shooter.x, shooter.y);
