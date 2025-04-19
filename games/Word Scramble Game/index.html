@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Word Scramble Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <h1>🔀 Word Scramble</h1>
+    <p id="scrambled-word">loading...</p>
+    <input type="text" id="user-input" placeholder="Your guess here">
+    <button onclick="checkWord()">Check</button>
+    <p id="result"></p>
+    <p><strong>Time Left:</strong> <span id="timer">30</span>s</p>
+    <button onclick="initGame()">New Word</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
