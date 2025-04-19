@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rhythm Runner</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #game-container {
+      text-align: center;
+    }
+    #game-canvas {
+      border: 2px solid #333;
+      background-color: #e0e0e0;
+    }
+    #info {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    #game-over {
+      display: none;
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #ddd;
+    }
+    .note {
+      animation: pulse 0.5s infinite alternate;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="info">Score: 0 | Misses: <span id="misses">0</span></div>
+    <canvas id="game-canvas" width="600" height="400"></canvas>
+    <div id="game-over">
+      <h2>Game Over</h2>
+      <p>Final Score: <span id="final-score"></span></p>
+      <button onclick="startGame()">Play Again</button>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const info = document.getElementById('info');
+    const missesDisplay = document.getElementById('misses');
+    const gameOver = document.getElementById('game-over');
+    const finalScore = document.getElementById('final-score');
+
+    const player = {
+      x: 50,
+      y: 350,
+      width: 30,
+      height: 30,
+      vy: 0,
+      jumping: false,
+      jumpPower: -10,
+      gravity: 0.5
+    };
+    let obstacles = [];
+    let notes = [];
+    let score = 0;
+    let misses = 0;
+    let gameRunning = true;
+    let groundX = 0;
+    const scrollSpeed = 2;
+
+    function spawnObject() {
+      if (!gameRunning) return;
+      const isNote = Math.random() < 0.4; // 40% chance for note
+      const y = 350;
+      const x = canvas.width;
+      if (isNote) {
+        notes.push({ x, y, radius: 10 });
+      } else {
+        obstacles.push({ x, y, width: 30, height: 30 });
+      }
+    }
+
+    function update() {
+      if (!gameRunning) {
+        finalScore.textContent = score;
+        gameOver.style.display = 'block';
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw scrolling ground
+      groundX -= scrollSpeed;
+      if (groundX <= -canvas.width) groundX = 0;
+      ctx.fillStyle = '#666';
+      ctx.fillRect(0, 380, canvas.width, 20);
+      ctx.fillRect(groundX, 380, canvas.width, 20);
+      ctx.fillRect(groundX + canvas.width, 380, canvas.width, 20);
+
+      // Update player
+      if (player.jumping) {
+        player.vy += player.gravity;
+        player.y += player.vy;
+        if (player.y >= 350) {
+          player.y = 350;
+          player.vy = 0;
+          player.jumping = false;
+        }
+      }
+      ctx.fillStyle = '#00f';
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // Update and draw obstacles
+      obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
+      for (let ob of obstacles) {
+        ob.x -= scrollSpeed;
+        ctx.beginPath();
+        ctx.moveTo(ob.x, ob.y);
+        ctx.lineTo(ob.x + ob.width, ob.y);
+        ctx.lineTo(ob.x + ob.width / 2, ob.y - ob.height);
+        ctx.fillStyle = '#f00';
+        ctx.fill();
+        ctx.closePath();
+
+        // Collision detection
+        if (
+          player.x < ob.x + ob.width &&
+          player.x + player.width > ob.x &&
+          player.y < ob.y &&
+          player.y + player.height > ob.y - ob.height
+        ) {
+          misses++;
+          obstacles = obstacles.filter(o => o !== ob);
+          missesDisplay.textContent = misses;
+          if (misses >= 5) gameRunning = false;
+        }
+      }
+
+      // Update and draw notes
+      notes = notes.filter(note => note.x > 0);
+      for (let note of notes) {
+        note.x -= scrollSpeed;
+        ctx.beginPath();
+        ctx.arc(note.x, note.y - 10, note.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#ff0';
+        ctx.fill();
+        ctx.closePath();
+
+        // Collection detection
+        if (
+          player.x < note.x + note.radius &&
+          player.x + player.width > note.x - note.radius &&
+          player.y < note.y &&
+          player.y + player.height > note.y - note.radius
+        ) {
+          score += 10;
+          notes = notes.filter(n => n !== note);
+        }
+      }
+
+      score++;
+      info.textContent = `Score: ${score} | Misses: ${misses}`;
+      requestAnimationFrame(update);
+    }
+
+    function handleJump() {
+      if (!player.jumping && gameRunning) {
+        player.jumping = true;
+        player.vy = player.jumpPower;
+      }
+    }
+
+    function startGame() {
+      gameRunning = true;
+      score = 0;
+      misses = 0;
+      player.y = 350;
+      player.vy = 0;
+      player.jumping = false;
+      obstacles = [];
+      notes = [];
+      groundX = 0;
+      info.textContent = `Score: ${score} | Misses: ${misses}`;
+      missesDisplay.textContent = misses;
+      gameOver.style.display = 'none';
+      clearInterval(spawnInterval);
+      spawnInterval = setInterval(spawnObject, 1500);
+      update();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') handleJump();
+    });
+
+    let spawnInterval;
+    startGame();
+  </script>
+</body>
+</html>
