@@ -7,14 +7,15 @@
 </head>
 <body>
   <h1>⌨️ Typing Speed Test</h1>
-  <p>Type the text below as fast as you can!</p>
-  <div class="test-container">
-    <p id="test-text">The quick brown fox jumps over the lazy dog.</p>
-    <textarea id="user-input" placeholder="Start typing..."></textarea>
-  </div>
-  <div class="result">
-    <p>Time: <span id="time">0</span> seconds</p>
-    <p>Words per minute: <span id="wpm">0</span></p>
+  <div class="container">
+    <div id="quote" class="quote"></div>
+    <textarea id="input" placeholder="Start typing here..." autofocus></textarea>
+    <div class="info">
+      <p><strong>Time:</strong> <span id="timer">0</span>s</p>
+      <p><strong>WPM:</strong> <span id="wpm">0</span></p>
+      <p><strong>Accuracy:</strong> <span id="accuracy">100</span>%</p>
+    </div>
+    <button onclick="startTest()">Restart</button>
   </div>
   <script src="script.js"></script>
 </body>
