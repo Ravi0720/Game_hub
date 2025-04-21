@@ -60,6 +60,7 @@ const blackScoreEl = document.getElementById('black-score');
 let selected = null;
 let whiteScore = 0;
 let blackScore = 0;
+let currentTurn = 'white';
 
 const pieceValues = {
   '♙': 1, '♟': 1,
@@ -102,32 +103,122 @@ function handleClick(e) {
   const square = e.target;
   const row = parseInt(square.dataset.row);
   const col = parseInt(square.dataset.col);
+  const clickedPiece = initialBoard[row][col];
 
   if (selected) {
     const fromPiece = initialBoard[selected.row][selected.col];
-    const toPiece = initialBoard[row][col];
 
-    // If capturing
-    if (toPiece !== '') {
-      const value = pieceValues[toPiece];
-      if (isWhite(fromPiece)) {
-        whiteScore += value;
-      } else {
-        blackScore += value;
+    if (isValidMove(fromPiece, selected.row, selected.col, row, col)) {
+      // Capture logic
+      if (clickedPiece !== '') {
+        const value = pieceValues[clickedPiece];
+        if (isWhite(fromPiece)) whiteScore += value;
+        else blackScore += value;
       }
+
+      initialBoard[row][col] = fromPiece;
+      initialBoard[selected.row][selected.col] = '';
+      currentTurn = currentTurn === 'white' ? 'black' : 'white';
+      selected = null;
+      drawBoard();
+    } else {
+      selected = null; // invalid move resets
     }
 
-    initialBoard[row][col] = fromPiece;
-    initialBoard[selected.row][selected.col] = '';
-    selected = null;
-    drawBoard();
-  } else if (initialBoard[row][col] !== '') {
+  } else if (clickedPiece !== '' && isCurrentPlayer(clickedPiece)) {
     selected = { row, col };
   }
 }
 
 function isWhite(piece) {
   return '♙♘♗♖♕♔'.includes(piece);
+}
+
+function isBlack(piece) {
+  return '♟♞♝♜♛♚'.includes(piece);
+}
+
+function isCurrentPlayer(piece) {
+  return (currentTurn === 'white' && isWhite(piece)) || (currentTurn === 'black' && isBlack(piece));
+}
+
+function isValidMove(piece, fromRow, fromCol, toRow, toCol) {
+  const target = initialBoard[toRow][toCol];
+  const dx = toCol - fromCol;
+  const dy = toRow - fromRow;
+
+  const isCapture = target !== '' && isWhite(piece) !== isWhite(target);
+
+  switch (piece) {
+    case '♙': // White pawn
+      if (dx === 0 && dy === -1 && target === '') return true;
+      if (dx === 0 && dy === -2 && fromRow === 6 && initialBoard[fromRow - 1][fromCol] === '' && target === '') return true;
+      if (Math.abs(dx) === 1 && dy === -1 && isCapture) return true;
+      break;
+
+    case '♟': // Black pawn
+      if (dx === 0 && dy === 1 && target === '') return true;
+      if (dx === 0 && dy === 2 && fromRow === 1 && initialBoard[fromRow + 1][fromCol] === '' && target === '') return true;
+      if (Math.abs(dx) === 1 && dy === 1 && isCapture) return true;
+      break;
+
+    case '♖':
+    case '♜':
+      return isStraightClear(fromRow, fromCol, toRow, toCol) && (target === '' || isCapture);
+
+    case '♗':
+    case '♝':
+      return isDiagonalClear(fromRow, fromCol, toRow, toCol) && (target === '' || isCapture);
+
+    case '♕':
+    case '♛':
+      return (isStraightClear(fromRow, fromCol, toRow, toCol) || isDiagonalClear(fromRow, fromCol, toRow, toCol)) && (target === '' || isCapture);
+
+    case '♘':
+    case '♞':
+      return (Math.abs(dx) === 1 && Math.abs(dy) === 2 || Math.abs(dx) === 2 && Math.abs(dy) === 1) && (target === '' || isCapture);
+
+    case '♔':
+    case '♚':
+      return Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (target === '' || isCapture);
+  }
+  return false;
+}
+
+function isStraightClear(fromRow, fromCol, toRow, toCol) {
+  if (fromRow === toRow) {
+    const step = fromCol < toCol ? 1 : -1;
+    for (let c = fromCol + step; c !== toCol; c += step) {
+      if (initialBoard[fromRow][c] !== '') return false;
+    }
+    return true;
+  }
+  if (fromCol === toCol) {
+    const step = fromRow < toRow ? 1 : -1;
+    for (let r = fromRow + step; r !== toRow; r += step) {
+      if (initialBoard[r][fromCol] !== '') return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+function isDiagonalClear(fromRow, fromCol, toRow, toCol) {
+  const dx = toCol - fromCol;
+  const dy = toRow - fromRow;
+  if (Math.abs(dx) !== Math.abs(dy)) return false;
+
+  const stepX = dx > 0 ? 1 : -1;
+  const stepY = dy > 0 ? 1 : -1;
+  let x = fromCol + stepX;
+  let y = fromRow + stepY;
+
+  while (x !== toCol && y !== toRow) {
+    if (initialBoard[y][x] !== '') return false;
+    x += stepX;
+    y += stepY;
+  }
+  return true;
 }
 
 function updateScores() {
