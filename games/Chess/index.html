@@ -19,6 +19,11 @@
   grid-template-rows: repeat(8, 60px);
   border: 2px solid #000;
 }
+#scoreboard {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
 
 .square {
   width: 60px;
@@ -42,10 +47,28 @@
 </head>
 <body>
   <h1>Chess Game</h1>
+  <div id="scoreboard">
+   <p>White Score: <span id="white-score">0</span></p>
+    <p>Black Score: <span id="black-score">0</span></p>
+  </div>
   <div id="chessboard"></div>
   <script>
   const board = document.getElementById('chessboard');
+const whiteScoreEl = document.getElementById('white-score');
+const blackScoreEl = document.getElementById('black-score');
+
 let selected = null;
+let whiteScore = 0;
+let blackScore = 0;
+
+const pieceValues = {
+  '♙': 1, '♟': 1,
+  '♘': 3, '♞': 3,
+  '♗': 3, '♝': 3,
+  '♖': 5, '♜': 5,
+  '♕': 9, '♛': 9,
+  '♔': 0, '♚': 0
+};
 
 const initialBoard = [
   ['♜','♞','♝','♛','♚','♝','♞','♜'],
@@ -72,6 +95,7 @@ function drawBoard() {
       board.appendChild(square);
     }
   }
+  updateScores();
 }
 
 function handleClick(e) {
@@ -80,14 +104,35 @@ function handleClick(e) {
   const col = parseInt(square.dataset.col);
 
   if (selected) {
-    // Move piece
-    initialBoard[row][col] = initialBoard[selected.row][selected.col];
+    const fromPiece = initialBoard[selected.row][selected.col];
+    const toPiece = initialBoard[row][col];
+
+    // If capturing
+    if (toPiece !== '') {
+      const value = pieceValues[toPiece];
+      if (isWhite(fromPiece)) {
+        whiteScore += value;
+      } else {
+        blackScore += value;
+      }
+    }
+
+    initialBoard[row][col] = fromPiece;
     initialBoard[selected.row][selected.col] = '';
     selected = null;
     drawBoard();
   } else if (initialBoard[row][col] !== '') {
     selected = { row, col };
   }
+}
+
+function isWhite(piece) {
+  return '♙♘♗♖♕♔'.includes(piece);
+}
+
+function updateScores() {
+  whiteScoreEl.textContent = whiteScore;
+  blackScoreEl.textContent = blackScore;
 }
 
 drawBoard();
