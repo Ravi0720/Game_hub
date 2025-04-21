@@ -19,33 +19,40 @@
             background: linear-gradient(to bottom, #0a0a23, #1b1b4f);
             font-family: Arial, sans-serif;
             color: white;
-            overflow: hidden;
+            overflow: auto;
             padding: 1rem;
         }
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             max-width: 900px;
             width: 100%;
+            padding: 1rem;
         }
         h1 {
             font-size: 2.5rem;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
             margin-bottom: 0.5rem;
+            text-align: center;
         }
         #gameCanvas {
             width: min(800px, 90vw);
-            height: min(600px, 70vh);
+            height: min(600px, calc(90vw * 0.75)); /* Maintain 4:3 aspect ratio */
+            max-width: 100%;
+            max-height: 70vh;
             border: 2px solid #fff;
             background: radial-gradient(circle, #1b1b4f, #0a0a23);
             border-radius: 10px;
+            display: block;
+            margin: 0 auto;
         }
         #score, #health, #fuel, #level, #combo {
             font-size: 1.25rem;
             text-align: center;
             width: 100%;
+            padding: 0.25rem 0;
         }
         #startButton {
             padding: 0.75rem 1.5rem;
@@ -56,6 +63,7 @@
             border: none;
             border-radius: 5px;
             transition: background-color 0.2s;
+            margin-top: 0.5rem;
         }
         #startButton:hover {
             background-color: #45a049;
@@ -73,6 +81,7 @@
             text-align: center;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
             max-width: 90vw;
+            z-index: 1000;
         }
         #gameOver h2 {
             font-size: 2rem;
@@ -103,6 +112,22 @@
         @keyframes explode {
             0% { transform: scale(0); opacity: 1; }
             100% { transform: scale(2); opacity: 0; }
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            #score, #health, #fuel, #level, #combo {
+                font-size: 1rem;
+            }
+            #startButton, #gameOver button {
+                padding: 0.5rem 1rem;
+                font-size: 1rem;
+            }
+            #gameCanvas {
+                width: 90vw;
+                height: calc(90vw * 0.75);
+            }
         }
     </style>
 </head>
@@ -145,8 +170,19 @@
         const collectSound = document.getElementById('collectSound');
         const hitSound = document.getElementById('hitSound');
 
-        canvas.width = Math.min(800, window.innerWidth * 0.9);
-        canvas.height = Math.min(600, window.innerHeight * 0.7);
+        // Initialize canvas size
+        function resizeCanvas() {
+            canvas.width = Math.min(800, window.innerWidth * 0.9);
+            canvas.height = Math.min(600, window.innerWidth * 0.9 * 0.75); // 4:3 aspect ratio
+            canvas.style.width = canvas.width + 'px';
+            canvas.style.height = canvas.height + 'px';
+            // Adjust game objects
+            player.x = Math.min(player.x, canvas.width - player.radius);
+            player.y = Math.min(player.y, canvas.height - player.radius);
+            warpGate.x = canvas.width - 50;
+            warpGate.y = Math.min(warpGate.y, canvas.height - warpGate.radius);
+        }
+        resizeCanvas();
 
         let score = 0;
         let health = 100;
@@ -463,14 +499,7 @@
         requestAnimationFrame(inputLoop);
 
         // Resize canvas on window resize
-        window.addEventListener('resize', () => {
-            canvas.width = Math.min(800, window.innerWidth * 0.9);
-            canvas.height = Math.min(600, window.innerHeight * 0.7);
-            player.x = Math.min(player.x, canvas.width - player.radius);
-            player.y = Math.min(player.y, canvas.height - player.radius);
-            warpGate.x = canvas.width - 50;
-            warpGate.y = Math.min(warpGate.y, canvas.height - warpGate.radius);
-        });
+        window.addEventListener('resize', resizeCanvas);
     </script>
 </body>
 </html>
