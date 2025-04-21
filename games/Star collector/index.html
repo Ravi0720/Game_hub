@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Collector</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #0a0a23, #1b1b4f);
+            font-family: Arial, sans-serif;
+            color: white;
+            overflow: hidden;
+            padding: 1rem;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            max-width: 900px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.5rem;
+        }
+        #gameCanvas {
+            width: min(800px, 90vw);
+            height: min(600px, 70vh);
+            border: 2px solid #fff;
+            background: radial-gradient(circle, #1b1b4f, #0a0a23);
+            border-radius: 10px;
+        }
+        #score, #health, #level, #combo, #stars, #timer {
+            font-size: 1.25rem;
+            text-align: center;
+            width: 100%;
+        }
+        #startButton {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.125rem;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        #startButton:hover {
+            background-color: #45a049;
+        }
+        #gameOver {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            max-width: 90vw;
+        }
+        #gameOver h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        #gameOver p {
+            font-size: 1.25rem;
+            margin: 0.5rem 0;
+        }
+        #gameOver button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.125rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #gameOver button:hover {
+            background-color: #45a049;
+        }
+        .explosion {
+            position: absolute;
+            background: radial-gradient(circle, #ffd700, transparent);
+            border-radius: 50%;
+            animation: explode 0.5s ease-out forwards;
+        }
+        @keyframes explode {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Star Collector</h1>
+        <div id="score">Score: <span id="scoreValue">0</span></div>
+        <div id="health">Health: <span id="healthValue">100</span></div>
+        <div id="level">Level: <span id="levelValue">1</span></div>
+        <div id="combo">Combo: <span id="comboValue">0</span>x</div>
+        <div id="stars">Stars: <span id="starsValue">0</span>/<span id="starsTarget">10</span></div>
+        <div id="timer">Time Left: <span id="timeValue">30</span>s</div>
+        <canvas id="gameCanvas"></canvas>
+        <button id="startButton">Start Game</button>
+    </div>
+    <div id="gameOver">
+        <h2>Game Over!</h2>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <p>Level Reached: <span id="finalLevel">1</span></p>
+        <p>Max Combo: <span id="finalCombo">0</span></p>
+        <button id="restartButton">Play Again</button>
+    </div>
+
+    <audio id="collectSound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+    <audio id="hitSound" src="https://www.soundjay.com/explosions/explosion-01.mp3"></audio>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreValue');
+        const healthDisplay = document.getElementById('healthValue');
+        const levelDisplay = document.getElementById('levelValue');
+        const comboDisplay = document.getElementById('comboValue');
+        const starsDisplay = document.getElementById('starsValue');
+        const starsTargetDisplay = document.getElementById('starsTarget');
+        const timeDisplay = document.getElementById('timeValue');
+        const startButton = document.getElementById('startButton');
+        const gameOverScreen = document.getElementById('gameOver');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const finalLevelDisplay = document.getElementById('finalLevel');
+        const finalComboDisplay = document.getElementById('finalCombo');
+        const restartButton = document.getElementById('restartButton');
+        const collectSound = document.getElementById('collectSound');
+        const hitSound = document.getElementById('hitSound');
+
+        canvas.width = Math.min(800, window.innerWidth * 0.9);
+        canvas.height = Math.min(600, window.innerHeight * 0.7);
+
+        let score = 0;
+        let health = 100;
+        let level = 1;
+        let combo = 0;
+        let maxCombo = 0;
+        let starsCollected = 0;
+        let starsTarget = 10;
+        let timeLeft = 30;
+        let gameActive = false;
+        let player = { x: canvas.width / 2, y: canvas.height / 2, radius: 15, speed: 5 };
+        let blackHoles = [];
+        let stars = [];
+        let powerUps = [];
+        let lastFrameTime = performance.now();
+        let shieldActive = false;
+        let timerInterval;
+
+        function createBlackHole() {
+            if (blackHoles.length >= 5 + level) return;
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const speed = 1 + level * 0.5;
+            const angle = Math.random() * 2 * Math.PI;
+            blackHoles.push({
+                x,
+                y,
+                dx: Math.cos(angle) * speed,
+                dy: Math.sin(angle) * speed,
+                radius: 20,
+                pullRadius: 100
+            });
+        }
+
+        function createStar() {
+            if (stars.length >= 5) return;
+            const x = Math.random() * (canvas.width - 20) + 10;
+            const y = Math.random() * (canvas.height - 20) + 10;
+            stars.push({ x, y, radius: 10 });
+        }
+
+        function createPowerUp() {
+            if (powerUps.length >= 1) return;
+            const x = Math.random() * (canvas.width - 20) + 10;
+            const y = Math.random() * (canvas.height - 20) + 10;
+            powerUps.push({ x, y, radius: 10, type: 'shield' });
+        }
+
+        function createExplosion(x, y, radius) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.width = `${radius * 2}px`;
+            explosion.style.height = `${radius * 2}px`;
+            explosion.style.left = `${x - radius + canvas.offsetLeft}px`;
+            explosion.style.top = `${y - radius + canvas.offsetTop}px`;
+            document.body.appendChild(explosion);
+            setTimeout(() => {
+                if (explosion.parentNode) {
+                    explosion.parentNode.removeChild(explosion);
+                }
+            }, 500);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw player
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, 2 * Math.PI);
+            ctx.fillStyle = shieldActive ? 'rgba(0, 255, 255, 0.5)' : '#ffd700';
+            ctx.fill();
+
+            // Draw black holes
+            blackHoles.forEach(hole => {
+                ctx.beginPath();
+                ctx.arc(hole.x, hole.y, hole.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#000';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+            });
+
+            // Draw stars
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+            });
+
+            // Draw power-ups
+            powerUps.forEach(powerUp => {
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#0ff';
+                ctx.fill();
+            });
+        }
+
+        function update(deltaTime) {
+            // Move black holes
+            blackHoles.forEach(hole => {
+                hole.x += hole.dx * (deltaTime / 16.67);
+                hole.y += hole.dy * (deltaTime / 16.67);
+                if (hole.x < 0 || hole.x > canvas.width) hole.dx *= -1;
+                if (hole.y < 0 || hole.y > canvas.height) hole.dy *= -1;
+
+                // Pull player
+                const dist = Math.hypot(hole.x - player.x, hole.y - player.y);
+                if (dist < hole.pullRadius && dist > hole.radius) {
+                    const force = (hole.pullRadius - dist) / hole.pullRadius;
+                    player.x += (hole.x - player.x) * force * 0.05 * (deltaTime / 16.67);
+                    player.y += (hole.y - player.y) * force * 0.05 * (deltaTime / 16.67);
+                }
+
+                // Check collision
+                if (dist < hole.radius + player.radius) {
+                    if (!shieldActive) {
+                        health -= 10;
+                        healthDisplay.textContent = health;
+                        combo = 0;
+                        comboDisplay.textContent = combo;
+                        hitSound.play().catch(() => {});
+                        createExplosion(player.x, player.y, player.radius);
+                    }
+                    if (health <= 0) {
+                        endGame();
+                    }
+                }
+            });
+
+            // Check star collisions
+            stars = stars.filter(star => {
+                const dist = Math.hypot(star.x - player.x, star.y - player.y);
+                if (dist < star.radius + player.radius) {
+                    starsCollected++;
+                    combo++;
+                    maxCombo = Math.max(maxCombo, combo);
+                    const points = 10 * level * (1 + combo * 0.1);
+                    score += Math.round(points);
+                    scoreDisplay.textContent = score;
+                    starsDisplay.textContent = starsCollected;
+                    comboDisplay.textContent = combo;
+                    collectSound.play().catch(() => {});
+                    createExplosion(star.x, star.y, star.radius);
+                    if (starsCollected >= starsTarget) {
+                        level++;
+                        levelDisplay.textContent = level;
+                        starsCollected = 0;
+                        starsTarget += 2;
+                        timeLeft = Math.max(15, 30 - level * 2);
+                        starsDisplay.textContent = starsCollected;
+                        starsTargetDisplay.textContent = starsTarget;
+                        timeDisplay.textContent = timeLeft;
+                        blackHoles = [];
+                        stars = [];
+                        powerUps = [];
+                        for (let i = 0; i < 3 + level; i++) createBlackHole();
+                        for (let i = 0; i < 5; i++) createStar();
+                    }
+                    return false;
+                }
+                return true;
+            });
+
+            // Check power-up collisions
+            powerUps = powerUps.filter(powerUp => {
+                const dist = Math.hypot(powerUp.x - player.x, powerUp.y - player.y);
+                if (dist < powerUp.radius + player.radius) {
+                    shieldActive = true;
+                    setTimeout(() => shieldActive = false, 5000);
+                    collectSound.play().catch(() => {});
+                    return false;
+                }
+                return true;
+            });
+
+            // Keep player in bounds
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+        }
+
+        function gameLoop(time) {
+            if (!gameActive) return;
+            const deltaTime = time - lastFrameTime;
+            lastFrameTime = time;
+            draw();
+            update(deltaTime);
+            requestAnimationFrame(gameLoop);
+        }
+
+        const keys = {};
+        document.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; });
+        document.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+
+        function handleInput(deltaTime) {
+            if (keys['arrowleft'] || keys['a']) player.x -= player.speed * (deltaTime / 16.67);
+            if (keys['arrowright'] || keys['d']) player.x += player.speed * (deltaTime / 16.67);
+            if (keys['arrowup'] || keys['w']) player.y -= player.speed * (deltaTime / 16.67);
+            if (keys['arrowdown'] || keys['s']) player.y += player.speed * (deltaTime / 16.67);
+        }
+
+        function startGame() {
+            if (!gameActive) {
+                gameActive = true;
+                score = 0;
+                health = 100;
+                level = 1;
+                combo = 0;
+                maxCombo = 0;
+                starsCollected = 0;
+                starsTarget = 10;
+                timeLeft = 30;
+                shieldActive = false;
+                scoreDisplay.textContent = score;
+                healthDisplay.textContent = health;
+                levelDisplay.textContent = level;
+                comboDisplay.textContent = combo;
+                starsDisplay.textContent = starsCollected;
+                starsTargetDisplay.textContent = starsTarget;
+                timeDisplay.textContent = timeLeft;
+                startButton.style.display = 'none';
+                player.x = canvas.width / 2;
+                player.y = canvas.height / 2;
+                blackHoles = [];
+                stars = [];
+                powerUps = [];
+                for (let i = 0; i < 3; i++) createBlackHole();
+                for (let i = 0; i < 5; i++) createStar();
+                lastFrameTime = performance.now();
+                requestAnimationFrame(gameLoop);
+                setInterval(createBlackHole, 2000);
+                setInterval(createStar, 1500);
+                setInterval(createPowerUp, 10000);
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timeDisplay.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            finalScoreDisplay.textContent = score;
+            finalLevelDisplay.textContent = level;
+            finalComboDisplay.textContent = maxCombo;
+            gameOverScreen.style.display = 'block';
+            startButton.style.display = 'block';
+        }
+
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            startGame();
+        });
+
+        // Handle input in game loop
+        function inputLoop(time) {
+            if (gameActive) {
+                const deltaTime = time - lastFrameTime;
+                handleInput(deltaTime);
+            }
+            requestAnimationFrame(inputLoop);
+        }
+        requestAnimationFrame(inputLoop);
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = Math.min(800, window.innerWidth * 0.9);
+            canvas.height = Math.min(600, window.innerHeight * 0.7);
+            player.x = Math.min(player.x, canvas.width - player.radius);
+            player.y = Math.min(player.y, canvas.height - player.radius);
+        });
+    </script>
+</body>
+</html>
