@@ -151,5 +151,56 @@
             }
         };
     </script>
+    <script>exports.handler = async (event) => {
+    const { code } = JSON.parse(event.body);
+
+    try {
+        // Exchange authorization code for access token
+        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                code,
+                client_id: process.env.1040566492472-1m2v4nle6ke6mfq5si1aiho92577gvmr.apps.googleusercontent.com,
+                client_secret: process.env.GOCSPX - U4vxCoxHeTo2HMlfM5hw26_AfWDJ,
+                redirect_uri: 'https://timep.netlify.app/auth/google/callback',
+                grant_type: 'authorization_code',
+            }),
+        });
+
+        if (!tokenResponse.ok) {
+            throw new Error('Failed to exchange code for token');
+        }
+
+        const tokenData = await tokenResponse.json();
+
+        // Fetch user data using the access token
+        const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        });
+
+        if (!userResponse.ok) {
+            throw new Error('Failed to fetch user data');
+        }
+
+        const userData = await userResponse.json();
+
+        // Prepare user data to return
+        const responseData = {
+            name: userData.name || userData.given_name || 'Google User',
+            email: userData.email,
+        };
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify(responseData),
+        };
+    } catch (error) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: error.message }),
+        };
+    }
+};</script>
 </body>
 </html>
