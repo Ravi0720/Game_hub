@@ -54,19 +54,9 @@
             <input type="password" id="password" placeholder="Password" required>
             <button type="submit" class="button">Login</button>
         </form>
-        <p>Or login with:</p>
-        <div class="oauth-buttons">
-            <button class="oauth-button" id="googleLogin">
-                <img src="https://www.google.com/favicon.ico" alt="Google"> Sign in with Google
-            </button>
-            <button class="oauth-button" id="githubLogin">
-                <img src="https://github.com/favicon.ico" alt="GitHub"> Sign in with GitHub
-            </button>
-        </div>
         <button class="button close-button" id="closeModal">Close</button>
     </div>
 
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         window.onload = function() {
             try {
@@ -91,8 +81,6 @@
                 const loginModal = document.getElementById('loginModal');
                 const closeModal = document.getElementById('closeModal');
                 const loginForm = document.getElementById('loginForm');
-                const googleLogin = document.getElementById('googleLogin');
-                const githubLogin = document.getElementById('githubLogin');
 
                 function updateUI() {
                     const user = JSON.parse(localStorage.getItem('user'));
@@ -124,22 +112,6 @@
                     updateUI();
                 });
 
-                googleLogin.addEventListener('click', () => {
-                    alert('Google login initiated (mock). Configure OAuth in production.');
-                    const user = { name: 'Google User', email: 'user@google.com' };
-                    localStorage.setItem('user', JSON.stringify(user));
-                    loginModal.style.display = 'none';
-                    updateUI();
-                });
-
-                githubLogin.addEventListener('click', () => {
-                    alert('GitHub login initiated (mock). Configure OAuth in production.');
-                    const user = { name: 'GitHub User', email: 'user@github.com' };
-                    localStorage.setItem('user', JSON.stringify(user));
-                    loginModal.style.display = 'none';
-                    updateUI();
-                });
-
                 logoutButton.addEventListener('click', () => {
                     localStorage.removeItem('user');
                     updateUI();
@@ -152,56 +124,5 @@
             }
         };
     </script>
-    <script>exports.handler = async (event) => {
-    const { code } = JSON.parse(event.body);
-
-    try {
-        // Exchange authorization code for access token
-        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                code,
-                client_id: process.env.1040566492472-1m2v4nle6ke6mfq5si1aiho92577gvmr.apps.googleusercontent.com,
-                client_secret: process.env.GOCSPX - U4vxCoxHeTo2HMlfM5hw26_AfWDJ,
-                redirect_uri: 'https://timep.netlify.app/auth/google/callback',
-                grant_type: 'authorization_code',
-            }),
-        });
-
-        if (!tokenResponse.ok) {
-            throw new Error('Failed to exchange code for token');
-        }
-
-        const tokenData = await tokenResponse.json();
-
-        // Fetch user data using the access token
-        const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: { Authorization: `Bearer ${tokenData.access_token}` },
-        });
-
-        if (!userResponse.ok) {
-            throw new Error('Failed to fetch user data');
-        }
-
-        const userData = await userResponse.json();
-
-        // Prepare user data to return
-        const responseData = {
-            name: userData.name || userData.given_name || 'Google User',
-            email: userData.email,
-        };
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify(responseData),
-        };
-    } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: error.message }),
-        };
-    }
-};</script>
 </body>
 </html>

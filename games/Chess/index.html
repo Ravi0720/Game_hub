@@ -3,45 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Game - TimeP</title>
+    <title>Chess - Mini Game Hub</title>
+    <link rel="stylesheet" href="../../style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js" 
-            onerror="console.error('Failed to load chessboard-js from cdnjs'); document.getElementById('status').textContent = 'Error: Failed to load chessboard. Please refresh.';"></script>
+            onerror="console.error('Failed to load chessboard-js'); document.getElementById('error-message').textContent = 'Error: Failed to load chessboard. Please refresh.';"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" 
-          onerror="console.error('Failed to load chessboard-js CSS from cdnjs');" />
+          onerror="console.error('Failed to load chessboard-js CSS');" />
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #1a1a1a;
-            color: #ffffff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #1a1a1a; /* Default dark theme */
+            color: #ffffff;
+            font-family: Arial, sans-serif;
         }
-        nav {
+        body.light-theme {
+            background-color: #ffffff;
+            color: #333333;
+        }
+        header {
+            width: 100%;
             background-color: #2c2c2c;
             padding: 1rem;
-            width: 100%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: center;
         }
-        nav ul {
-            list-style: none;
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-        }
-        nav a {
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: color 0.3s;
-        }
-        nav a:hover {
-            color: #00ccff;
+        header.light-theme {
+            background-color: #f0f0f0;
         }
         #game-container {
             flex: 1;
@@ -57,10 +47,12 @@
             border: 2px solid #2c2c2c;
             border-radius: 8px;
         }
+        #myBoard.light-theme {
+            border-color: #cccccc;
+        }
         #status {
             font-size: 1.2rem;
             margin: 1rem 0;
-            color: #cccccc;
         }
         #error-message {
             color: #ff5555;
@@ -72,30 +64,32 @@
             #myBoard {
                 width: 90vw !important;
             }
-            nav ul {
-                flex-direction: column;
-                align-items: center;
-                gap: 1rem;
-            }
         }
     </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="chess.html">Chess Game</a></li>
-            <!-- Add other nav links from timep.netlify.app as needed -->
-        </ul>
-    </nav>
+    <header>
+        <a href="../../index.html" class="button">Back to Mini Game Hub</a>
+    </header>
     <div id="game-container">
-        <h1>Chess Game</h1>
+        <h1>♟️ Chess</h1>
         <div id="myBoard" style="width: 400px"></div>
         <p id="status">Chessboard initialized. Try dragging pieces!</p>
         <p id="error-message"></p>
     </div>
+    <footer>
+        © 2025 Ravi Shankar. All rights reserved.
+    </footer>
 
     <script>
+        // Apply theme from localStorage
+        const currentTheme = localStorage.getItem('theme') || 'dark';
+        if (currentTheme === 'light') {
+            document.body.classList.add('light-theme');
+            document.querySelector('#myBoard').classList.add('light-theme');
+            document.querySelector('header').classList.add('light-theme');
+        }
+
         // Initialize chessboard.js
         const cfg = {
             draggable: true,
