@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guess the Number</title>
+  
+</head>
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f7fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .game-container {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  input[type="number"] {
+    padding: 10px;
+    width: 60%;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    background: #4caf50;
+    color: white;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background: #45a049;
+  }
+  
+  #feedback {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  #restartGame {
+    background: #f44336;
+  }
+  
+  #restartGame:hover {
+    background: #e53935;
+  }
+  
+</style>
+<body>
+  <div class="game-container">
+    <h1>Guess the Number!</h1>
+    <p>I'm thinking of a number between 1 and 100...</p>
+    <input type="number" id="guessInput" placeholder="Enter your guess" min="1" max="100">
+    <button id="submitGuess">Guess</button>
+    <p id="feedback"></p>
+    <p id="attempts">Attempts: 0</p>
+    <button id="restartGame">Restart</button>
+  </div>
+  <script>
+
+let randomNumber = Math.floor(Math.random() * 100) + 1;
+let attempts = 0;
+
+const guessInput = document.getElementById('guessInput');
+const feedback = document.getElementById('feedback');
+const attemptsDisplay = document.getElementById('attempts');
+const submitGuess = document.getElementById('submitGuess');
+const restartGame = document.getElementById('restartGame');
+
+window.onload = () => {
+  guessInput.focus(); // Auto-focus input on load
+};
+
+submitGuess.addEventListener('click', () => {
+  const userGuess = parseInt(guessInput.value);
+
+  if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+    feedback.textContent = 'Please enter a number between 1 and 100.';
+    feedback.style.color = 'red';
+    return;
+  }
+
+  attempts++;
+  attemptsDisplay.textContent = `Attempts: ${attempts}`;
+
+  if (userGuess === randomNumber) {
+    feedback.textContent = `🎉 Correct! The number was ${randomNumber}.`;
+    feedback.style.color = 'green';
+    submitGuess.disabled = true;
+  } else if (userGuess < randomNumber) {
+    feedback.textContent = 'Too low! Try again.';
+    feedback.style.color = 'blue';
+  } else {
+    feedback.textContent = 'Too high! Try again.';
+    feedback.style.color = 'blue';
+  }
+
+  guessInput.value = '';
+  guessInput.focus(); // Keep focus for next input
+});
+
+guessInput.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    submitGuess.click(); // Trigger the guess
+  }
+});
+
+restartGame.addEventListener('click', () => {
+  randomNumber = Math.floor(Math.random() * 100) + 1;
+  attempts = 0;
+  guessInput.value = '';
+  feedback.textContent = '';
+  feedback.style.color = 'black';
+  attemptsDisplay.textContent = 'Attempts: 0';
+  submitGuess.disabled = false;
+  guessInput.focus();
+});
+
+  </script>
+</body>
+</html>
