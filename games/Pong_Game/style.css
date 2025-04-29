@@ -1,15 +1,31 @@
 body {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #1a1a1a;
     font-family: Arial, sans-serif;
-    margin-top: 50px;
+    color: #fff;
 }
 
 h1 {
-    color: #333;
+    color: #fff;
+    margin-bottom: 20px;
 }
 
 canvas {
     background-color: #000;
     display: block;
-    margin: 0 auto;
+    border: 2px solid #fff;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 850px) {
+    canvas {
+        width: 100%;
+        height: auto;
+    }
 }
