@@ -1,37 +1,99 @@
+:root {
+    --primary-color: #00ff88;
+    --secondary-color: #00b760;
+    --text-color: #fff;
+    --shadow-color: rgba(0, 255, 136, 0.5);
+    --high-contrast-bg: #000;
+    --high-contrast-text: #fff;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background: #f0f0f0;
-}
-
-.board {
-    display: grid;
-    grid-template-columns: repeat(3, 100px);
-    grid-gap: 5px;
-    margin: 20px auto;
-    width: max-content;
-}
-
-.cell {
-    width: 100px;
-    height: 100px;
-    font-size: 2.5rem;
     display: flex;
-    align-items: center;
     justify-content: center;
-    background: white;
-    border: 2px solid #333;
-    cursor: pointer;
-    transition: background 0.3s;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(to bottom, #1a1a1a, #000);
+    color: var(--text-color);
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-.cell:hover {
-    background: #f2f2f2;
+#menu, #settings, #instructions, #game-over {
+    text-align: center;
+    animation: fadeIn 0.5s ease-in;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -60%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+canvas {
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 0 20px var(--shadow-color);
+    border-radius: 5px;
+    background-color: #111;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 button {
-    padding: 10px 20px;
-    font-size: 16px;
-    margin-top: 15px;
+    font-size: 20px;
+    padding: 12px 24px;
+    background: linear-gradient(var(--primary-color), var(--secondary-color));
+    color: #000;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
+    margin: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-width: 120px;
+    touch-action: manipulation;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px var(--shadow-color);
+}
+
+h1 {
+    font-size: 36px;
+    text-shadow: 0 0 10px var(--primary-color);
+    margin: 20px 0;
+}
+
+#scoreboard {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+#scoreboard p {
+    font-size: 20px;
+}
+
+.high-contrast canvas {
+    border-color: var(--high-contrast-text);
+    background-color: var(--high-contrast-bg);
+}
+
+.high-contrast button {
+    background: var(--high-contrast-text);
+    color: var(--high-contrast-bg);
+}
+
+.high-contrast h1, .high-contrast p {
+    color: var(--high-contrast-text);
+    text-shadow: none;
 }
