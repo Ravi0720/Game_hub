@@ -1,15 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tic Tac Toe</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Tic Tac Toe</h1>
-  <div class="board" id="board"></div>
-  <h2 id="status">Player X's turn</h2>
-  <button onclick="restartGame()">Restart Game</button>
-  <script src="script.js"></script>
+    <div id="loading" style="text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <h1>Loading...</h1>
+    </div>
+    <div id="menu">
+        <h1>Tic-Tac-Toe</h1>
+        <button id="singlePlayerBtn">Single Player</button>
+        <button id="multiPlayerBtn">Multiplayer</button>
+        <button id="settingsBtn">Settings</button>
+        <button id="instructionsBtn">Instructions</button>
+    </div>
+    <div id="settings" style="display: none;">
+        <h1>Settings</h1>
+        <button id="muteBtn">Mute</button>
+        <button id="highContrastBtn">High Contrast: Off</button>
+        <button id="difficultyBtn">Difficulty: Medium</button>
+        <button id="backBtn">Back</button>
+    </div>
+    <div id="instructions" style="display: none;">
+        <h1>Instructions</h1>
+        <p>Single Player: Play as X vs. AI (O). Click or tap to place your mark.</p>
+        <p>Multiplayer: Players alternate as X and O. Click or tap to place your mark.</p>
+        <p>Get three in a row to win. Press Space or tap to restart after game over.</p>
+        <button id="backInstructionsBtn">Back</button>
+    </div>
+    <div id="game">
+        <div id="scoreboard">
+            <p>X Wins: <span id="xWins">0</span></p>
+            <p>O Wins: <span id="oWins">0</span></p>
+            <p>Draws: <span id="draws">0</span></p>
+        </div>
+        <canvas id="board"></canvas>
+        <div id="game-over" style="display: none;">
+            <h1 id="winner-text"></h1>
+            <button id="restartBtn">Play Again</button>
+            <button id="menuBtn">Main Menu</button>
+        </div>
+    </div>
+    <script src="script.js" defer></script>
 </body>
 </html>
