@@ -12,6 +12,7 @@ const GRID_SIZE = 3;
 const CELL_SIZE = 100;
 const LINE_WIDTH = 5;
 const TOUCH_DEBOUNCE_MS = 200;
+const LOADING_TIMEOUT_MS = 5000;
 
 // Game state
 const gameState = {
@@ -31,12 +32,15 @@ const DIFFICULTY_SETTINGS = {
     hard: { aiMistakeChance: 0 }
 };
 
-// Sound effects
+// Sound effects (commented out external URLs; host locally if needed)
+/*
 const sounds = {
-    move: new Audio('https://cdn.pixabay.com/audio/2023/08/29/10-40-24-141_200x200.mp3'),
-    win: new Audio('https://cdn.pixabay.com/audio/2023/09/01/14-42-21-391_200x200.mp3'),
-    draw: new Audio('https://cdn.pixabay.com/audio/2023/09/01/14-41-49-468_200x200.mp3')
+    move: new Audio('sounds/move.mp3'), // Host locally, e.g., in games/tic-tac-toe/sounds/
+    win: new Audio('sounds/win.mp3'),
+    draw: new Audio('sounds/draw.mp3')
 };
+*/
+const sounds = {}; // Fallback: no sounds until hosted locally
 
 Object.values(sounds).forEach(sound => {
     sound.onerror = () => console.warn('Failed to load audio:', sound.src);
@@ -49,7 +53,7 @@ const loadingDiv = document.getElementById('loading');
 
 // Responsive canvas
 function resizeCanvas() {
-    const max علاقہ = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.8, 400);
+    const maxSize = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.8, 400);
     canvas.width = maxSize;
     canvas.height = maxSize;
     if (ctx) drawBoard();
@@ -361,6 +365,7 @@ document.getElementById('menuBtn').addEventListener('click', () => {
 });
 
 function startGame() {
+    console.log('Starting game:', gameMode);
     document.getElementById('menu').style.display = 'none';
     document.getElementById('game').style.display = 'block';
     canvas.style.display = 'block';
@@ -390,15 +395,18 @@ function resetGame() {
 }
 
 function restartGame() {
+    console.log('Restarting game');
     resetGame();
     drawBoard();
 }
 
 // Preload assets and initialize
+console.log('Initializing game');
 Promise.all(Object.values(sounds).map(sound => new Promise(resolve => {
     sound.oncanplaythrough = resolve;
     sound.onerror = resolve;
 }))).then(() => {
+    console.log('Assets loaded');
     loadingDiv.style.display = 'none';
     document.getElementById('menu').style.display = 'block';
     resizeCanvas();
@@ -408,6 +416,16 @@ Promise.all(Object.values(sounds).map(sound => new Promise(resolve => {
     document.getElementById('menu').style.display = 'block';
     resizeCanvas();
 });
+
+// Fallback timeout for loading screen
+setTimeout(() => {
+    if (loadingDiv.style.display !== 'none') {
+        console.warn('Loading timeout triggered');
+        loadingDiv.style.display = 'none';
+        document.getElementById('menu').style.display = 'block';
+        resizeCanvas();
+    }
+}, LOADING_TIMEOUT_MS);
 
 // Event listeners for responsiveness
 window.addEventListener('resize', () => {
