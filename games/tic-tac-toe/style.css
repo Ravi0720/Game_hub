@@ -83,6 +83,15 @@ h1 {
     font-size: 20px;
 }
 
+#scoreboard.reset {
+    animation: scoreReset 0.5s ease-in;
+}
+
+@keyframes scoreReset {
+    0% { transform: scale(1.2); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
 .high-contrast canvas {
     border-color: var(--high-contrast-text);
     background-color: var(--high-contrast-bg);
