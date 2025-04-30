@@ -466,7 +466,7 @@ document.getElementById('menuBtn').addEventListener('click', () => {
 });
 
 document.getElementById('backToHubBtn').addEventListener('click', () => {
-    window.location.href = '/';
+    window.location.href = 'https://timep.netlify.app/';
 });
 
 document.getElementById('joinRoomBtn').addEventListener('click', () => {
