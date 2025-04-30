@@ -1,31 +1,45 @@
 body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    background-color: #1a1a1a;
-    font-family: Arial, sans-serif;
-    color: #fff;
-}
-
-h1 {
-    color: #fff;
-    margin-bottom: 20px;
+  margin: 0;
+  background: #000;
+  overflow: hidden;
 }
 
 canvas {
-    background-color: #000;
-    display: block;
-    border: 2px solid #fff;
-    max-width: 100%;
-    box-sizing: border-box;
+  display: block;
+  margin: auto;
+  background: black;
 }
 
-@media (max-width: 850px) {
-    canvas {
-        width: 100%;
-        height: auto;
-    }
+#controls {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.player-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.left-controls {
+  margin-left: 20px;
+}
+
+.right-controls {
+  margin-right: 20px;
+}
+
+button {
+  padding: 20px;
+  font-size: 24px;
+  border-radius: 10px;
+  background-color: rgba(255,255,255,0.2);
+  color: white;
+  width: 60px;
+  border: none;
 }
