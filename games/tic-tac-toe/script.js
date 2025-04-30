@@ -4,12 +4,14 @@ let gameMode = ''; // 'single' or 'multi'
 let isMuted = false;
 let highContrast = false;
 let difficulty = 'medium'; // 'easy', 'medium', 'hard'
-let resetScoresOnRestart = true; // New setting for score reset
+let resetScoresOnRestart = true; // Setting for score reset
+let lastTouchTime = 0; // For touch debouncing
 
 // Game constants
 const GRID_SIZE = 3;
 const CELL_SIZE = 100;
 const LINE_WIDTH = 5;
+const TOUCH_DEBOUNCE_MS = 200;
 
 // Game state
 const gameState = {
@@ -47,14 +49,18 @@ const loadingDiv = document.getElementById('loading');
 
 // Responsive canvas
 function resizeCanvas() {
-    const maxSize = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.8, 400);
+    const max علاقہ = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.8, 400);
     canvas.width = maxSize;
     canvas.height = maxSize;
-    drawBoard();
+    if (ctx) drawBoard();
 }
 
 // Draw functions
 function drawBoard() {
+    if (!ctx) {
+        console.warn('Canvas context not available');
+        return;
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = highContrast ? '#fff' : '#00ff88';
     ctx.lineWidth = LINE_WIDTH;
@@ -106,34 +112,42 @@ function drawBoard() {
 
 // Game logic
 function makeMove(index) {
-    if (gameState.board[index] || gameState.gameOver) return;
-    gameState.board[index] = gameState.currentPlayer;
-    if (!isMuted) sounds.move.play();
-    checkGameOver();
-    if (!gameState.gameOver) {
-        gameState.currentPlayer = gameState.currentPlayer === 'X' ? 'O' : 'X';
-        if (gameMode === 'single' && gameState.currentPlayer === 'O' && !gameState.gameOver) {
-            setTimeout(makeAIMove, 500);
+    try {
+        if (gameState.board[index] || gameState.gameOver) return;
+        gameState.board[index] = gameState.currentPlayer;
+        if (!isMuted && sounds.move) sounds.move.play();
+        checkGameOver();
+        if (!gameState.gameOver) {
+            gameState.currentPlayer = gameState.currentPlayer === 'X' ? 'O' : 'X';
+            if (gameMode === 'single' && gameState.currentPlayer === 'O' && !gameState.gameOver) {
+                setTimeout(makeAIMove, 500);
+            }
         }
+        drawBoard();
+        updateScoreboard();
+    } catch (err) {
+        console.error('Error in makeMove:', err);
     }
-    drawBoard();
-    updateScoreboard();
 }
 
 function makeAIMove() {
-    let move = -1;
-    if (Math.random() < DIFFICULTY_SETTINGS[difficulty].aiMistakeChance) {
-        const emptyCells = gameState.board.map((cell, i) => cell ? null : i).filter(i => i !== null);
-        move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-    } else {
-        move = minimax(gameState.board, 'O').index;
+    try {
+        let move = -1;
+        if (Math.random() < DIFFICULTY_SETTINGS[difficulty].aiMistakeChance) {
+            const emptyCells = gameState.board.map((cell, i) => cell ? null : i).filter(i => i !== null);
+            move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        } else {
+            move = minimax(gameState.board, 'O').index;
+        }
+        if (move !== -1) makeMove(move);
+    } catch (err) {
+        console.error('Error in makeAIMove:', err);
     }
-    if (move !== -1) makeMove(move);
 }
 
 function minimax(board, player) {
     const winner = checkWinner(board);
-    if (winner ===,this.player === 'O') return { score: 10 };
+    if (winner === 'O') return { score: 10 };
     if (winner === 'X') return { score: -10 };
     if (!board.includes(null)) return { score: 0 };
 
@@ -165,7 +179,7 @@ function minimax(board, player) {
             }
         });
     }
-    return bestMove;
+    return bestMove || { index: -1, score: 0 };
 }
 
 function checkWinner(board) {
@@ -197,23 +211,29 @@ function getWinningCombo() {
 }
 
 function checkGameOver() {
-    gameState.winner = checkWinner(gameState.board);
-    if (gameState.winner) {
-        gameState.gameOver = true;
-        document.getElementById('game-over').style.display = 'block';
-        document.getElementById('winner-text').textContent = gameState.winner === 'Draw' ? 'Draw!' : `${gameState.winner} Wins!`;
-        if (gameState.winner === 'X') {
-            gameState.xWins++;
-            localStorage.setItem('xWins', gameState.xWins);
-        } else if (gameState.winner === 'O') {
-            gameState.oWins++;
-            localStorage.setItem('oWins', gameState.oWins);
-        } else {
-            gameState.draws++;
-            localStorage.setItem('draws', gameState.draws);
+    try {
+        gameState.winner = checkWinner(gameState.board);
+        if (gameState.winner) {
+            gameState.gameOver = true;
+            document.getElementById('game-over').style.display = 'block';
+            document.getElementById('winner-text').textContent = gameState.winner === 'Draw' ? 'Draw!' : `${gameState.winner} Wins!`;
+            if (gameState.winner === 'X') {
+                gameState.xWins++;
+                localStorage.setItem('xWins', gameState.xWins);
+            } else if (gameState.winner === 'O') {
+                gameState.oWins++;
+                localStorage.setItem('oWins', gameState.oWins);
+            } else {
+                gameState.draws++;
+                localStorage.setItem('draws', gameState.draws);
+            }
+            if (!isMuted && sounds[gameState.winner === 'Draw' ? 'draw' : 'win']) {
+                sounds[gameState.winner === 'Draw' ? 'draw' : 'win'].play();
+            }
+            updateScoreboard();
         }
-        if (!isMuted) (gameState.winner === 'Draw' ? sounds.draw : sounds.win).play();
-        updateScoreboard();
+    } catch (err) {
+        console.error('Error in checkGameOver:', err);
     }
 }
 
@@ -239,6 +259,9 @@ canvas.addEventListener('click', (e) => {
 
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
+    const now = Date.now();
+    if (now - lastTouchTime < TOUCH_DEBOUNCE_MS) return;
+    lastTouchTime = now;
     const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
     const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
@@ -313,6 +336,18 @@ document.getElementById('resetScoresBtn').addEventListener('click', () => {
     document.getElementById('resetScoresBtn').textContent = `Reset Scores on Restart: ${resetScoresOnRestart ? 'On' : 'Off'}`;
 });
 
+document.getElementById('clearScoresBtn').addEventListener('click', () => {
+    gameState.xWins = 0;
+    gameState.oWins = 0;
+    gameState.draws = 0;
+    localStorage.setItem('xWins', '0');
+    localStorage.setItem('oWins', '0');
+    localStorage.setItem('draws', '0');
+    updateScoreboard();
+    document.getElementById('scoreboard').classList.add('reset');
+    setTimeout(() => document.getElementById('scoreboard').classList.remove('reset'), 500);
+});
+
 document.getElementById('restartBtn').addEventListener('click', () => {
     restartGame();
 });
@@ -377,9 +412,7 @@ Promise.all(Object.values(sounds).map(sound => new Promise(resolve => {
 // Event listeners for responsiveness
 window.addEventListener('resize', () => {
     resizeCanvas();
-    drawBoard();
 });
 window.addEventListener('orientationchange', () => {
     resizeCanvas();
-    drawBoard();
 });
