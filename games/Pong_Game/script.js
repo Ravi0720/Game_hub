@@ -1,4 +1,6 @@
+let isSinglePlayer = null; // null until player chooses
 const canvas = document.getElementById('pong');
+canvas.style.display = 'none';
 const ctx = canvas.getContext('2d');
 
 // === CONFIGURATION ===
@@ -235,4 +237,11 @@ if (!isSinglePlayer) {
     setTouchControl('right-down', rightPaddle, 1);
 }
 
-update();
+// Start game only after selecting mode
+function startGame(singlePlayerMode) {
+    isSinglePlayer = singlePlayerMode;
+    document.getElementById('mode-selection').style.display = 'none';
+    canvas.style.display = 'block';
+    update();
+}
+
