@@ -8,30 +8,40 @@
 </head>
 <body>
     <div id="loading" style="text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-        <h1>Loading Game...</h1>
+        <h1>Loading Tic-Tac-Toe...</h1>
     </div>
     <div id="menu">
         <h1>Tic-Tac-Toe</h1>
-        <button id="singlePlayerBtn">Single Player</button>
-        <button id="multiPlayerBtn">Multiplayer</button>
-        <button id="settingsBtn">Settings</button>
-        <button id="instructionsBtn">Instructions</button>
+        <button id="singlePlayerBtn" title="Play against AI">Single Player</button>
+        <button id="multiPlayerBtn" title="Play locally with a friend">Multiplayer</button>
+        <button id="onlinePlayerBtn" title="Play online with a friend">Play Online</button>
+        <button id="settingsBtn" title="Adjust game settings">Settings</button>
+        <button id="instructionsBtn" title="How to play">Instructions</button>
+        <button id="backToHubBtn" title="Return to Mini Game Hub">Back to Hub</button>
     </div>
     <div id="settings" style="display: none;">
         <h1>Settings</h1>
-        <button id="muteBtn">Mute</button>
-        <button id="highContrastBtn">High Contrast: Off</button>
-        <button id="difficultyBtn">Difficulty: Medium</button>
-        <button id="resetScoresBtn">Reset Scores on Restart: On</button>
-        <button id="clearScoresBtn">Clear All Scores</button>
-        <button id="backBtn">Back</button>
+        <button id="muteBtn" title="Toggle sound effects and music">Mute</button>
+        <button id="highContrastBtn" title="Toggle high-contrast mode">High Contrast: Off</button>
+        <button id="difficultyBtn" title="Set AI difficulty">Difficulty: Medium</button>
+        <button id="resetScoresBtn" title="Reset scores on game restart">Reset Scores on Restart: On</button>
+        <button id="clearScoresBtn" title="Clear all saved scores">Clear All Scores</button>
+        <button id="backBtn" title="Return to main menu">Back</button>
     </div>
     <div id="instructions" style="display: none;">
         <h1>Instructions</h1>
-        <p>Single Player: Play as X vs. AI (O). Click or tap to place your mark.</p>
-        <p>Multiplayer: Players alternate as X and O. Click or tap to place your mark.</p>
+        <p>Single Player: Play as X vs. AI (O). Click, tap, or press 1-9 to place your mark.</p>
+        <p>Multiplayer: Players alternate as X and O. Click, tap, or press 1-9 to place your mark.</p>
+        <p>Online: Join a room to play with a friend. Share the room code to connect.</p>
         <p>Get three in a row to win. Press Space or tap to restart after game over.</p>
-        <button id="backInstructionsBtn">Back</button>
+        <button id="backInstructionsBtn" title="Return to main menu">Back</button>
+    </div>
+    <div id="online" style="display: none;">
+        <h1>Play Online</h1>
+        <input id="roomCode" type="text" placeholder="Enter Room Code" maxlength="6">
+        <button id="joinRoomBtn" title="Join an online game">Join Room</button>
+        <button id="createRoomBtn" title="Create a new online game">Create Room</button>
+        <button id="backOnlineBtn" title="Return to main menu">Back</button>
     </div>
     <div id="game">
         <div id="scoreboard">
@@ -39,13 +49,19 @@
             <p>O Wins: <span id="oWins">0</span></p>
             <p>Draws: <span id="draws">0</span></p>
         </div>
+        <div id="moveHistory">
+            <h2>Move History</h2>
+            <ul id="moveList"></ul>
+        </div>
         <canvas id="board"></canvas>
         <div id="game-over" style="display: none;">
             <h1 id="winner-text"></h1>
-            <button id="restartBtn">Play Again</button>
-            <button id="menuBtn">Main Menu</button>
+            <button id="restartBtn" title="Start a new game">Play Again</button>
+            <button id="undoBtn" title="Undo last move (multiplayer only)">Undo Move</button>
+            <button id="menuBtn" title="Return to main menu">Main Menu</button>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
     <script src="script.js" defer></script>
 </body>
 </html>
