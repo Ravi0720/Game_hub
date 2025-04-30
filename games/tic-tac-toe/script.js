@@ -4,6 +4,7 @@ let gameMode = ''; // 'single' or 'multi'
 let isMuted = false;
 let highContrast = false;
 let difficulty = 'medium'; // 'easy', 'medium', 'hard'
+let resetScoresOnRestart = true; // New setting for score reset
 
 // Game constants
 const GRID_SIZE = 3;
@@ -49,6 +50,7 @@ function resizeCanvas() {
     const maxSize = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.8, 400);
     canvas.width = maxSize;
     canvas.height = maxSize;
+    drawBoard();
 }
 
 // Draw functions
@@ -131,7 +133,7 @@ function makeAIMove() {
 
 function minimax(board, player) {
     const winner = checkWinner(board);
-    if (winner === 'O') return { score: 10 };
+    if (winner ===,this.player === 'O') return { score: 10 };
     if (winner === 'X') return { score: -10 };
     if (!board.includes(null)) return { score: 0 };
 
@@ -306,6 +308,11 @@ document.getElementById('difficultyBtn').addEventListener('click', () => {
     document.getElementById('difficultyBtn').textContent = `Difficulty: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`;
 });
 
+document.getElementById('resetScoresBtn').addEventListener('click', () => {
+    resetScoresOnRestart = !resetScoresOnRestart;
+    document.getElementById('resetScoresBtn').textContent = `Reset Scores on Restart: ${resetScoresOnRestart ? 'On' : 'Off'}`;
+});
+
 document.getElementById('restartBtn').addEventListener('click', () => {
     restartGame();
 });
@@ -334,6 +341,17 @@ function resetGame() {
     gameState.gameOver = false;
     gameState.winner = null;
     document.getElementById('game-over').style.display = 'none';
+    if (resetScoresOnRestart) {
+        gameState.xWins = 0;
+        gameState.oWins = 0;
+        gameState.draws = 0;
+        localStorage.setItem('xWins', '0');
+        localStorage.setItem('oWins', '0');
+        localStorage.setItem('draws', '0');
+        document.getElementById('scoreboard').classList.add('reset');
+        setTimeout(() => document.getElementById('scoreboard').classList.remove('reset'), 500);
+    }
+    updateScoreboard();
 }
 
 function restartGame() {
