@@ -1,4 +1,4 @@
- <script>
+ 
         const canvas = document.getElementById('pong');
         const ctx = canvas.getContext('2d');
         let gameMode = ''; // 'single' or 'multi'
@@ -445,4 +445,3 @@
 
         // Initialize
         resizeCanvas();
-    </script>
