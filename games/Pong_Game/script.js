@@ -1,16 +1,21 @@
 const canvas = document.getElementById('pong');
 const ctx = canvas.getContext('2d');
 
-// Constants
+// === CONFIGURATION ===
+canvas.width = 800;
+canvas.height = 400;
+
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
 const BALL_RADIUS = 10;
-const PADDLE_SPEED = 8;
-const BALL_SPEED = 7;
-const MAX_BALL_SPEED = 12;
+const PADDLE_SPEED = 7;
+const BALL_SPEED = 6;
 const MAX_SCORE = 5;
 
-// Game state
+// === GAME MODE ===
+let isSinglePlayer = true; // Set this to false for 2-player mode
+
+// === GAME STATE ===
 const gameState = {
     leftScore: 0,
     rightScore: 0,
@@ -19,7 +24,7 @@ const gameState = {
     lastScored: null
 };
 
-// Game objects
+// === OBJECTS ===
 const leftPaddle = {
     x: 0,
     y: canvas.height / 2 - PADDLE_HEIGHT / 2,
@@ -47,7 +52,7 @@ const ball = {
     color: '#FFFFFF'
 };
 
-// Drawing functions
+// === DRAW FUNCTIONS ===
 function drawPaddle(paddle) {
     ctx.fillStyle = paddle.color;
     ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
@@ -67,14 +72,6 @@ function drawScores() {
     ctx.textAlign = 'center';
     ctx.fillText(gameState.leftScore, canvas.width / 4, 50);
     ctx.fillText(gameState.rightScore, 3 * canvas.width / 4, 50);
-
-    if (gameState.lastScored === 'left') {
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
-        ctx.fillRect(0, 0, canvas.width / 2, 50);
-    } else if (gameState.lastScored === 'right') {
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
-        ctx.fillRect(canvas.width / 2, 0, canvas.width / 2, 50);
-    }
 }
 
 function drawNet() {
@@ -95,7 +92,7 @@ function draw() {
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
         ctx.fillText(
-            `${gameState.leftScore >= MAX_SCORE ? 'Left' : 'Right'} Player Wins!`,
+            `${gameState.leftScore >= MAX_SCORE ? 'Left' : 'Right'} Wins!`,
             canvas.width / 2,
             canvas.height / 2
         );
@@ -111,26 +108,18 @@ function draw() {
     drawScores();
 }
 
-// Movement and collisions
+// === MOVEMENT ===
 function movePaddles() {
     leftPaddle.y = Math.max(0, Math.min(canvas.height - leftPaddle.height, leftPaddle.y + leftPaddle.dy));
-    moveRightPaddleAI();
-    rightPaddle.y = Math.max(0, Math.min(canvas.height - rightPaddle.height, rightPaddle.y + rightPaddle.dy));
-}
 
-function moveRightPaddleAI() {
-    const paddleCenter = rightPaddle.y + rightPaddle.height / 2;
-    if (ball.dx > 0) {
-        if (ball.y < paddleCenter - 10) {
-            rightPaddle.dy = -PADDLE_SPEED;
-        } else if (ball.y > paddleCenter + 10) {
-            rightPaddle.dy = PADDLE_SPEED;
-        } else {
-            rightPaddle.dy = 0;
-        }
-    } else {
-        rightPaddle.dy = 0;
+    if (isSinglePlayer) {
+        // AI movement
+        const target = ball.y - rightPaddle.height / 2;
+        const diff = target - rightPaddle.y;
+        rightPaddle.dy = Math.sign(diff) * Math.min(PADDLE_SPEED - 2, Math.abs(diff));
     }
+
+    rightPaddle.y = Math.max(0, Math.min(canvas.height - rightPaddle.height, rightPaddle.y + rightPaddle.dy));
 }
 
 function moveBall() {
@@ -139,28 +128,25 @@ function moveBall() {
     ball.x += ball.dx;
     ball.y += ball.dy;
 
+    // Wall collision
     if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
         ball.dy = -ball.dy;
     }
 
+    // Paddle collision
     if (
         (ball.x - ball.radius < leftPaddle.x + leftPaddle.width &&
-         ball.y > leftPaddle.y &&
-         ball.y < leftPaddle.y + leftPaddle.height) ||
+         ball.y > leftPaddle.y && ball.y < leftPaddle.y + leftPaddle.height) ||
         (ball.x + ball.radius > rightPaddle.x &&
-         ball.y > rightPaddle.y &&
-         ball.y < rightPaddle.y + rightPaddle.height)
+         ball.y > rightPaddle.y && ball.y < rightPaddle.y + rightPaddle.height)
     ) {
         const paddle = ball.x < canvas.width / 2 ? leftPaddle : rightPaddle;
         const hitPos = (ball.y - paddle.y) / paddle.height;
         ball.dy = 2 * BALL_SPEED * (hitPos - 0.5);
         ball.dx = -ball.dx * 1.1;
-
-        // Cap speed
-        ball.dx = Math.sign(ball.dx) * Math.min(Math.abs(ball.dx), MAX_BALL_SPEED);
-        ball.dy = Math.sign(ball.dy) * Math.min(Math.abs(ball.dy), MAX_BALL_SPEED);
     }
 
+    // Score check
     if (ball.x < 0) {
         gameState.rightScore++;
         gameState.lastScored = 'right';
@@ -188,7 +174,7 @@ function resetBall(direction) {
     }, 1000);
 }
 
-// Game loop
+// === GAME LOOP ===
 function update() {
     if (!gameState.gameOver) {
         movePaddles();
@@ -198,10 +184,12 @@ function update() {
     requestAnimationFrame(update);
 }
 
-// Input
+// === INPUT: KEYBOARD ===
 const keys = {
     w: { down: false, action: () => leftPaddle.dy = -PADDLE_SPEED },
     s: { down: false, action: () => leftPaddle.dy = PADDLE_SPEED },
+    ArrowUp: { down: false, action: () => rightPaddle.dy = -PADDLE_SPEED },
+    ArrowDown: { down: false, action: () => rightPaddle.dy = PADDLE_SPEED },
     ' ': {
         down: false,
         action: () => {
@@ -227,21 +215,24 @@ document.addEventListener('keyup', (e) => {
     if (keys[e.key]) {
         keys[e.key].down = false;
         if (['w', 's'].includes(e.key)) leftPaddle.dy = 0;
+        if (!isSinglePlayer && ['ArrowUp', 'ArrowDown'].includes(e.key)) rightPaddle.dy = 0;
     }
 });
 
-// Resize support
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    leftPaddle.y = canvas.height / 2 - PADDLE_HEIGHT / 2;
-    rightPaddle.x = canvas.width - PADDLE_WIDTH;
-    rightPaddle.y = canvas.height / 2 - PADDLE_HEIGHT / 2;
-    resetBall(1);
+// === INPUT: TOUCH ===
+function setTouchControl(id, paddle, direction) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener('touchstart', () => paddle.dy = direction * PADDLE_SPEED);
+    btn.addEventListener('touchend', () => paddle.dy = 0);
 }
 
-window.addEventListener('resize', resizeCanvas);
+// === INIT ===
+setTouchControl('left-up', leftPaddle, -1);
+setTouchControl('left-down', leftPaddle, 1);
+if (!isSinglePlayer) {
+    setTouchControl('right-up', rightPaddle, -1);
+    setTouchControl('right-down', rightPaddle, 1);
+}
 
-// Initialize and start
-resizeCanvas();
 update();
