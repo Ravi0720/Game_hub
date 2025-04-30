@@ -1,12 +1,13 @@
 const canvas = document.getElementById('pong');
 const ctx = canvas.getContext('2d');
 
-// Game constants
+// Constants
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
 const BALL_RADIUS = 10;
 const PADDLE_SPEED = 8;
 const BALL_SPEED = 7;
+const MAX_BALL_SPEED = 12;
 const MAX_SCORE = 5;
 
 // Game state
@@ -46,7 +47,7 @@ const ball = {
     color: '#FFFFFF'
 };
 
-// Draw functions
+// Drawing functions
 function drawPaddle(paddle) {
     ctx.fillStyle = paddle.color;
     ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
@@ -66,7 +67,7 @@ function drawScores() {
     ctx.textAlign = 'center';
     ctx.fillText(gameState.leftScore, canvas.width / 4, 50);
     ctx.fillText(gameState.rightScore, 3 * canvas.width / 4, 50);
-    
+
     if (gameState.lastScored === 'left') {
         ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
         ctx.fillRect(0, 0, canvas.width / 2, 50);
@@ -88,7 +89,7 @@ function drawNet() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     if (gameState.gameOver) {
         ctx.font = '40px Arial';
         ctx.fillStyle = '#FFFFFF';
@@ -110,10 +111,26 @@ function draw() {
     drawScores();
 }
 
-// Movement and collision
+// Movement and collisions
 function movePaddles() {
     leftPaddle.y = Math.max(0, Math.min(canvas.height - leftPaddle.height, leftPaddle.y + leftPaddle.dy));
+    moveRightPaddleAI();
     rightPaddle.y = Math.max(0, Math.min(canvas.height - rightPaddle.height, rightPaddle.y + rightPaddle.dy));
+}
+
+function moveRightPaddleAI() {
+    const paddleCenter = rightPaddle.y + rightPaddle.height / 2;
+    if (ball.dx > 0) {
+        if (ball.y < paddleCenter - 10) {
+            rightPaddle.dy = -PADDLE_SPEED;
+        } else if (ball.y > paddleCenter + 10) {
+            rightPaddle.dy = PADDLE_SPEED;
+        } else {
+            rightPaddle.dy = 0;
+        }
+    } else {
+        rightPaddle.dy = 0;
+    }
 }
 
 function moveBall() {
@@ -138,6 +155,10 @@ function moveBall() {
         const hitPos = (ball.y - paddle.y) / paddle.height;
         ball.dy = 2 * BALL_SPEED * (hitPos - 0.5);
         ball.dx = -ball.dx * 1.1;
+
+        // Cap speed
+        ball.dx = Math.sign(ball.dx) * Math.min(Math.abs(ball.dx), MAX_BALL_SPEED);
+        ball.dy = Math.sign(ball.dy) * Math.min(Math.abs(ball.dy), MAX_BALL_SPEED);
     }
 
     if (ball.x < 0) {
@@ -177,21 +198,22 @@ function update() {
     requestAnimationFrame(update);
 }
 
-// Input handling
+// Input
 const keys = {
     w: { down: false, action: () => leftPaddle.dy = -PADDLE_SPEED },
     s: { down: false, action: () => leftPaddle.dy = PADDLE_SPEED },
-    ArrowUp: { down: false, action: () => rightPaddle.dy = -PADDLE_SPEED },
-    ArrowDown: { down: false, action: () => rightPaddle.dy = PADDLE_SPEED },
-    ' ': { down: false, action: () => {
-        if (gameState.gameOver) {
-            gameState.leftScore = 0;
-            gameState.rightScore = 0;
-            gameState.gameOver = false;
-            gameState.lastScored = null;
-            resetBall(1);
+    ' ': {
+        down: false,
+        action: () => {
+            if (gameState.gameOver) {
+                gameState.leftScore = 0;
+                gameState.rightScore = 0;
+                gameState.gameOver = false;
+                gameState.lastScored = null;
+                resetBall(1);
+            }
         }
-    }}
+    }
 };
 
 document.addEventListener('keydown', (e) => {
@@ -205,11 +227,21 @@ document.addEventListener('keyup', (e) => {
     if (keys[e.key]) {
         keys[e.key].down = false;
         if (['w', 's'].includes(e.key)) leftPaddle.dy = 0;
-        if (['ArrowUp', 'ArrowDown'].includes(e.key)) rightPaddle.dy = 0;
     }
 });
 
-// Start game
-canvas.width = 800;
-canvas.height = 400;
+// Resize support
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    leftPaddle.y = canvas.height / 2 - PADDLE_HEIGHT / 2;
+    rightPaddle.x = canvas.width - PADDLE_WIDTH;
+    rightPaddle.y = canvas.height / 2 - PADDLE_HEIGHT / 2;
+    resetBall(1);
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+// Initialize and start
+resizeCanvas();
 update();
