@@ -1,0 +1,88 @@
+[33m326c96b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Merge branch 'main' of https://github.com/Ravi0720/Game_hub into main
+[33ma0f93b6[m Initial commit
+[33m6937ff5[m Added package-lock.json
+[33m83b7730[m deleted old file
+[33m9239643[m Convert Game Hub to Next.js with TypeScript
+[33mabedbec[m Added .gitignore
+[33m65a3d9f[m Update script.js
+[33m59cd2e8[m Update script.js
+[33m179b59f[m Update style.css
+[33mb2afee8[m Update index.html
+[33m53095de[m Update script.js
+[33meed308b[m Update style.css
+[33m754eb6a[m Update index.html
+[33me73d8e1[m Update script.js
+[33mf0e0b2e[m Update style.css
+[33m8d0571d[m Update index.html
+[33md2ad992[m Update script.js
+[33m631c193[m Update style.css
+[33m6013cdc[m Update index.html
+[33mbd5e110[m Update script.js
+[33m696169a[m Update style.css
+[33m7ba4f78[m Update index.html
+[33m46ee124[m Update script.js
+[33m7674af0[m Update style.css
+[33mac25c99[m Update index.html
+[33md60830a[m Update style.css
+[33m33379e7[m Update script.js
+[33m4b29919[m Update index.html
+[33m0392c12[m Update index.html
+[33mc78d51f[m Update script.js
+[33m3209c19[m Update style.css
+[33mc713218[m Update index.html
+[33m95a8a72[m Update index.html
+[33m033a12c[m Update index.html
+[33m7e9e458[m Update index.html
+[33m8f3b26b[m Update script.js
+[33md84ed4a[m Update index.html
+[33mbf44bc3[m Update style.css
+[33m96bdb0e[m Update index.html
+[33m804b2fe[m Update script.js
+[33m30ca192[m Update script.js
+[33mfb40dc1[m Update style.css
+[33m48e37b8[m Update script.js
+[33m1752162[m Update index.html
+[33meba0afc[m Create index.html
+[33me52e156[m Delete Game directory
+[33m3b5f9e0[m Rename games/Guess The Number to Game/Guess The number/index.html
+[33m6814aff[m Create Guess The Number
+[33m54c7ee6[m fixing
+[33maf3069b[m Ludo added
+[33m8286f27[m adding rules
+[33m6a18cfb[m fixed chess
+[33m2d082d1[m fixed chess
+[33md6c73f1[m  deleted toml
+[33m0c6fbb4[m added chess
+[33m8b210d7[m added chess
+[33m9c81449[m added chess
+[33m955cb16[m changes
+[33m46bca0f[m  Adding 0Auth
+[33m6673755[m  updated UI
+[33m5d023a3[m improved verion
+[33me7f7c09[m improve nabula
+[33m757c52e[m added nabula navigator
+[33m604c955[m added Star collector
+[33mb6b9f69[m added Star collector
+[33maccd42e[m improved version
+[33m9bf8ec3[m add Typing Tempest
+[33me26010e[m add Typing Tempest
+[33mcf6f524[m add Color Catch
+[33mc84ac5c[m adding more games
+[33mfcd1bb7[m adding other games
+[33m9f2e271[m upadte index
+[33m2bb1286[m updated index
+[33m51f2c78[m added Pixel painter game
+[33m45e0ee3[m Added Color Bubble Shooter game with full functionality
+[33m87a2da8[m Added Color Bubble Shooter game with full functionality
+[33m5b64d3b[m Added Color Bubble Shooter Game
+[33m6404d1a[m Updated Typing Speed Test with more paragraphs
+[33m2e89034[m Added Word Scramble game and updated index.html
+[33mea7f6da[m Add Word Scramble mini game
+[33m3702c4a[m Fix Typing Speed Test game link and folder
+[33mb0ad345[m Updated index.html to include new games and copyright
+[33m654b33f[m Added Pong game
+[33m2a692a3[m Added Typing Speed Test game
+[33m39294be[m Added Whack-a-Mole game
+[33mafb8edf[m Added footer with copyright
+[33m5042bc8[m Added all mini games to Game Hub
+[33m452edc7[m Initial commit
